@@ -1,15 +1,81 @@
-name: my-snap-name # you probably want to 'snapcraft register <name>'
-version: '0.1' # just for humans, typically '1.2+git' or '1.3.2'
-summary: Single-line elevator pitch for your amazing snap # 79 char long summary
-description: |
-  This is my-snap's description. You have a paragraph or two to tell the
-  most important story about your snap. Keep it under 100 words though,
-  we live in tweetspace and your description wants to look good in the snap
-  store.
+name: tvheadend
+version: '4.2.6'
+summary: TV streaming server supporting DVB, ATSC, IPTV, and SAT>IP
+description: >
+  Tvheadend is a TV streaming server and digital video recorder supporting
+  DVB-S, DVB-S2, DVB-C, DVB-C2, DVB-T, DVB-T2, ATSC, IPTV, SAT>IP and other
+  formats. It can also stream and record from HDHomeRun devices.
 
-confinement: devmode # use 'strict' once you have the right plugs and slots
+  Once installed use your web browser to navigate to http://<IP-Address>:9981/
+  (You can use 127.0.0.1 for the IP Address if your browser and tvheadend are on
+  the same computer.)
+
+confinement: strict
+grade: stable
+
+apps:
+  tvheadend:
+    command: usr/bin/tvheadend --config $SNAP_DATA
+    daemon: simple
+    plugs:
+      - dvb
+      - network
+      - network-bind
 
 parts:
-  my-part:
-    # See 'snapcraft plugins'
-    plugin: nil
+  tvheadend:
+    plugin: autotools
+    source: https://github.com/tvheadend/tvheadend/archive/v$SNAPCRAFT_PROJECT_VERSION.tar.gz
+    organize:
+      snap/tvheadend/current/usr: usr
+    configflags:
+      - --prefix=/snap/tvheadend/current/usr
+      - --enable-hdhomerun_client
+      - --enable-avahi
+      - --enable-zlib
+      - --enable-libav
+      - --enable-nvenc
+      - --enable-qsv
+    build-packages:
+      - bzip2
+      - cmake
+      - gettext
+      - libavahi-client-dev
+      - libavcodec-dev
+      - libavformat-dev
+      - libavresample-dev
+      - libavutil-dev
+      - libc6-dev
+      - libhdhomerun-dev
+      - libssl-dev
+      - libswscale-dev
+      - libtool-bin
+      - liburiparser-dev
+      - libva-dev
+      - python
+      - wget
+      - zlib1g-dev
+    stage-packages:
+      - libavahi-client3
+      - libavcodec-ffmpeg56
+      - libavformat-ffmpeg56
+      - libavresample-ffmpeg2
+      - libavutil-ffmpeg54
+      - libhdhomerun2
+      - libssl1.0.0
+      - libswscale-ffmpeg3
+      - liburiparser1
+      - python
+      - zlib1g
+
+      # Video Acceleration
+      - libva1
+      - libva-drm1
+      - i965-va-driver
+      - mesa-va-drivers
+      - vdpau-va-driver
+      # - libva-egl1
+      # - libva-glx1
+      # - libva-tpi1
+      # - libva-wayland1
+      # - libva-x11-1
