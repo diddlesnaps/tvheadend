@@ -71,9 +71,9 @@ parts:
       # Video Acceleration
       - libva1
       - libva-drm1
-      - i965-va-driver
-      - mesa-va-drivers
-      - vdpau-va-driver
+      - try:
+        - va-driver-all
+        - vdpau-va-driver
       # - libva-egl1
       # - libva-glx1
       # - libva-tpi1
