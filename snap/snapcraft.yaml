@@ -24,18 +24,19 @@ apps:
 
 parts:
   tvheadend:
-    plugin: autotools
+    plugin: make
     source: https://github.com/tvheadend/tvheadend/archive/v$SNAPCRAFT_PROJECT_VERSION.tar.gz
     organize:
       snap/tvheadend/current/usr: usr
-    configflags:
-      - --prefix=/snap/tvheadend/current/usr
-      - --enable-hdhomerun_client
-      - --enable-avahi
-      - --enable-zlib
-      - --enable-libav
-      - --enable-nvenc
-      - --enable-qsv
+    override-build: |
+      CONFIGFLAGS="--arch=$SNAPCRAFT_ARCH \
+        --prefix=/snap/tvheadend/current/usr \
+        --enable-hdhomerun_client"
+      if [ "$SNAPCRAFT_ARCH_TRIPLET" = "arm-linux-gnueabihf" -o "$SNAPCRAFT_ARCH_TRIPLET" = "aarch64-linux-gnu" ]; then
+        CONFIGFLAGS="$CONFIGFLAGS --disable-ffmpeg_static"
+      fi
+      ./configure $CONFIGFLAGS
+      snapcraftctl build
     build-packages:
       - bzip2
       - cmake
@@ -46,7 +47,9 @@ parts:
       - libavresample-dev
       - libavutil-dev
       - libc6-dev
+      - libdvbcsa-dev
       - libhdhomerun-dev
+      - libpcre3-dev
       - libssl-dev
       - libswscale-dev
       - libtool-bin
@@ -56,16 +59,9 @@ parts:
       - wget
       - zlib1g-dev
     stage-packages:
+      - bzip2
       - libavahi-client3
-      - libavcodec-ffmpeg56
-      - libavformat-ffmpeg56
-      - libavresample-ffmpeg2
-      - libavutil-ffmpeg54
-      - libhdhomerun2
-      - libssl1.0.0
-      - libswscale-ffmpeg3
       - liburiparser1
-      - python
       - zlib1g
 
       # Video Acceleration
