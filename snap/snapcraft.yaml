@@ -1,5 +1,5 @@
 name: tvheadend
-version: '4.2.6'
+adopt-info: tvheadend
 summary: TV streaming server supporting DVB, ATSC, IPTV, and SAT>IP
 description: >
   Tvheadend is a TV streaming server and digital video recorder supporting
@@ -22,12 +22,63 @@ apps:
       - network
       - network-bind
 
+  oscam:
+    command: usr/local/bin/oscam -c $SNAP_DATA -t $TMPDIR -u
+    daemon: simple
+    plugs:
+      - dvb
+      - network
+      - network-bind
+
 parts:
+  libusb:
+    plugin: autotools
+    source: https://github.com/libusb/libusb/releases/download/v1.0.22/libusb-1.0.22.tar.bz2
+    configflags:
+      - --prefix=/usr
+    build-packages:
+      - libudev-dev
+    stage-packages:
+      - libudev1
+
+  oscam:
+    after: [libusb]
+    plugin: make
+    source: http://www.streamboard.tv/svn/oscam/trunk
+    source-type: svn
+    override-build: |
+      MAKEOPTS="USE_LIBUSB=1 USE_PCSC=1 USE_UTF8=1 NO_PLUS_TARGET=1"
+      MAKEOPTS="$MAKEOPTS OSCAM_BIN='$SNAPCRAFT_PART_INSTALL/usr/local/bin/oscam' BINDIR='$SNAPCRAFT_PART_INSTALL/usr/local/bin'"
+      MAKEOPTS="$MAKEOPTS EXTRA_CFLAGS='-I$SNAPCRAFT_STAGE/usr/include/libusb-1.0' EXTRA_LDFLAGS='-L$SNAPCRAFT_STAGE/usr/lib'"
+      mkdir -p "$SNAPCRAFT_PART_INSTALL/usr/local/bin"
+      make $MAKEOPTS allyesconfig
+      make $MAKEOPTS -j$SNAPCRAFT_PARALLEL_BUILD_COUNT pcsc-libusb
+    build-packages:
+      - libssl-dev
+      - libpcsclite-dev
+    stage-packages:
+      - libssl1.0.0
+      - libpcsclite1
+
   tvheadend:
     plugin: make
-    source: https://github.com/tvheadend/tvheadend/archive/v$SNAPCRAFT_PROJECT_VERSION.tar.gz
+    source: https://github.com/tvheadend/tvheadend.git
+    source-branch: release/4.2
     organize:
       snap/tvheadend/current/usr: usr
+    override-pull: |
+      snapcraftctl pull
+      last_committed_tag="$(git describe --tags --abbrev=0)"
+      last_released_tag="$(snap info $SNAPCRAFT_PROJECT_NAME | awk '$1 == "beta:" { print $2 }')"
+      # If the latest tag from the upstream project has not been released to
+      # beta, build that tag instead of master.
+      if [ "${last_committed_tag}" != "${last_released_tag}" ]; then
+        git fetch
+        git checkout "${last_committed_tag}"
+        snapcraftctl set-version "$(echo "${last_committed_tag}" | sed -E -e "s!^($SNAPCRAFT_PROJECT_NAME-?|v(ersion)?[/-]?)!!i")"
+      else
+        snapcraftctl set-version "$(git rev-parse --short HEAD)"
+      fi
     override-build: |
       CONFIGFLAGS="--arch=$SNAPCRAFT_ARCH \
         --prefix=/snap/tvheadend/current/usr \
