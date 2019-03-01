@@ -12,6 +12,7 @@ description: >
 
 confinement: strict
 grade: stable
+base: core18
 
 apps:
   tvheadend:
@@ -44,7 +45,7 @@ parts:
   oscam:
     after: [libusb]
     plugin: make
-    source: http://www.streamboard.tv/svn/oscam/trunk
+    source: http://www.streamboard.tv/svn/oscam/trunk/
     source-type: svn
     override-build: |
       MAKEOPTS="USE_LIBUSB=1 USE_PCSC=1 USE_UTF8=1 NO_PLUS_TARGET=1"
@@ -116,8 +117,8 @@ parts:
       - zlib1g
 
       # Video Acceleration
-      - libva1
-      - libva-drm1
+      - libva2
+      - libva-drm2
       - try:
         - va-driver-all
         - vdpau-va-driver
