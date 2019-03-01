@@ -45,7 +45,8 @@ parts:
   oscam:
     after: [libusb]
     plugin: make
-    source: https://github.com/gfto/oscam.git
+    source: http://www.streamboard.tv/svn/oscam/trunk/
+    source-type: svn
     override-build: |
       MAKEOPTS="USE_LIBUSB=1 USE_PCSC=1 USE_UTF8=1 NO_PLUS_TARGET=1"
       MAKEOPTS="$MAKEOPTS OSCAM_BIN='$SNAPCRAFT_PART_INSTALL/usr/local/bin/oscam' BINDIR='$SNAPCRAFT_PART_INSTALL/usr/local/bin'"
