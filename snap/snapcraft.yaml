@@ -28,6 +28,7 @@ apps:
       - dvb
       - network
       - network-bind
+      - removable-media
 
   oscam:
     command: usr/local/bin/oscam -c $SNAP_DATA -t $TMPDIR -u
@@ -36,6 +37,7 @@ apps:
       - dvb
       - network
       - network-bind
+      - removable-media
 
 parts:
   libusb:
