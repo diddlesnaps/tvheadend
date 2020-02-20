@@ -1,0 +1,3 @@
+#!/bin/sh
+
+exec /bin/echo "$SNAP_DATA/oscam.conf"

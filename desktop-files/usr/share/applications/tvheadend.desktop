@@ -1,0 +1,8 @@
+[Desktop Entry]
+Encoding=UTF-8
+Version=1.0
+Type=Application
+Terminal=false
+Exec=tvheadend.tvheadend-webui
+Name=TVHeadend Web UI
+Icon=/usr/share/tvheadend/src/webui/static/img/logo.png

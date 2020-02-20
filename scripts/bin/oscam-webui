@@ -1,0 +1,11 @@
+#!/bin/sh
+
+CONF_IP=
+CONF_PORT=
+
+if [ -f "$SNAP_DATA/oscam.conf" ]; then
+    CONF_IP=$(grep serverip "$SNAP_DATA/oscam.conf" | head -n1 | cut -d= -f2 | xargs)
+    CONF_PORT=$(grep httpport "$SNAP_DATA/oscam.conf" | head -n1 | cut -d= -f2 | xargs)
+fi
+
+xdg-open "http://${CONF_IP:-"127.0.0.1"}:${CONF_PORT:-8888}/"

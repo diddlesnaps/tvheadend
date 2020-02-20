@@ -1,0 +1,10 @@
+#!/bin/sh
+
+CONF_IP=$(snapctl get tvh-ip)
+CONF_PORT=$(snapctl get tvh-http-port)
+
+if [ "$CONF_IP" = "0.0.0.0" ]; then
+    CONF_IP=
+fi
+
+xdg-open "http://${CONF_IP:-"127.0.0.1"}:${CONF_PORT:-9981}/"
