@@ -7,13 +7,17 @@ LISTEN_HTSP_PORT=$(snapctl get tvh-htsp-port)
 ARGS=
 
 if [ -n "$LISTEN_IP" ]; then
-    ARGS="$ARGS -b $LISTEN_IP"
+    ARGS="$ARGS --bindaddr $LISTEN_IP --satip_bindaddr $LISTEN_IP"
 fi
 if [ -n "$LISTEN_HTTP_PORT" ]; then
     ARGS="$ARGS --http_port $LISTEN_HTTP_PORT"
 fi
 if [ -n "$LISTEN_HTSP_PORT" ]; then
     ARGS="$ARGS --htsp_port $LISTEN_HTSP_PORT"
+fi
+
+if [ ! -d "$SNAP_DATA/accesscontrol" ]; then
+    ARGS="$ARGS --firstrun"
 fi
 
 exec "$SNAP/usr/bin/tvheadend" --config "$SNAP_DATA" $ARGS

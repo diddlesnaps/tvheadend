@@ -1,8 +1,7 @@
 #!/bin/sh
 
 if [ -d "$SNAP_DATA/accesscontrol" ]; then
-    rm -rf "$SNAP_DATA/accesscontrol/*"
+    rm -rf "$SNAP_DATA/accesscontrol"
 fi
 
-"$SNAP/bin/set-default-permissions"
 snapctl restart tvheadend.tvheadend

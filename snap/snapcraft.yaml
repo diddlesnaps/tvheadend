@@ -31,7 +31,7 @@ description: >
 
 confinement: strict
 grade: stable
-base: core18
+base: core20
 
 architectures:
   - build-on: i386
@@ -39,11 +39,28 @@ architectures:
   - build-on: armhf
   - build-on: arm64
 
+layout:
+  /usr/share/xmltv:
+    bind: $SNAP/usr/share/xmltv
+  /usr/lib/$SNAPCRAFT_ARCH_TRIPLET/perl:
+    bind: $SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/perl
+  /usr/lib/$SNAPCRAFT_ARCH_TRIPLET/perl5:
+    bind: $SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/perl5
+  /usr/share/perl:
+    bind: $SNAP/usr/share/perl
+  /usr/share/perl5:
+    bind: $SNAP/usr/share/perl5
+
+environment:
+  LANG: C.UTF-8
+  LC_ALL: C.UTF-8
+
 apps:
   tvheadend:
     command: bin/tvheadend-launch
     daemon: simple
     plugs:
+      - avahi-control
       - dvb
       - network
       - network-bind
@@ -89,10 +106,33 @@ parts:
     plugin: dump
     source: desktop-files
 
+  patches:
+    plugin: dump
+    source: patches
+    prime: [-*]
+
+  vc4-libs:
+    after: [patches]
+    source: https://github.com/raspberrypi/userland.git
+    source-depth: 1
+    plugin: nil
+    override-build: |
+      if [ "$SNAPCRAFT_ARCH_TRIPLET" != "arm-linux-gnueabihf" ] && [ "$SNAPCRAFT_ARCH_TRIPLET" != "aarch64-linux-gnu" ]; then
+        exit 0
+      fi
+      git apply $SNAPCRAFT_STAGE/vc-libs-neon.patch
+      ./buildme .
+      mkdir -p $SNAPCRAFT_PART_INSTALL/usr
+      cp -av ./build/raspberry/release/opt/vc/lib $SNAPCRAFT_PART_INSTALL/usr/
+      cp -av ./build/raspberry/release/opt/vc/include $SNAPCRAFT_PART_INSTALL/usr/
+    build-packages:
+      - cmake
+      - g++
+
   libusb:
     plugin: autotools
     source: https://github.com/libusb/libusb/releases/download/v1.0.22/libusb-1.0.22.tar.bz2
-    configflags:
+    autotools-configure-parameters:
       - --prefix=/usr
     build-packages:
       - libudev-dev
@@ -115,10 +155,11 @@ parts:
       - libssl-dev
       - libpcsclite-dev
     stage-packages:
-      - libssl1.0.0
+      - libssl1.1
       - libpcsclite1
 
   tvheadend:
+    after: [vc4-libs]
     plugin: make
     source: https://github.com/tvheadend/tvheadend.git
     source-branch: release/4.2
@@ -140,47 +181,170 @@ parts:
     override-build: |
       CONFIGFLAGS="--arch=$SNAPCRAFT_ARCH \
         --prefix=/snap/tvheadend/current/usr \
-        --enable-hdhomerun_client"
-      if [ "$SNAPCRAFT_ARCH_TRIPLET" = "arm-linux-gnueabihf" -o "$SNAPCRAFT_ARCH_TRIPLET" = "aarch64-linux-gnu" ]; then
-        CONFIGFLAGS="$CONFIGFLAGS --disable-ffmpeg_static"
+        --disable-ffmpeg_static
+        --enable-avahi
+        --enable-capmt \
+        --enable-cccam \
+        --enable-constcw \
+        --enable-cwc \
+        --enable-dvbscan \
+        --enable-hdhomerun_client \
+        --enable-iptv \
+        --enable-libav \
+        --enable-libfdkaac \
+        --enable-libopus \
+        --enable-libtheora \
+        --enable-libvorbis \
+        --enable-libvpx \
+        --enable-libx264 \
+        --enable-libx265 \
+        --enable-linuxdvb \
+        --enable-linuxdvb_ca \
+        --enable-linuxdvbapi \
+        --enable-nvenc \
+        --enable-pcre2 \
+        --enable-satip_client \
+        --enable-satip_server \
+        --enable-tsfile \
+        --enable-tvhcsa \
+        --enable-upnp \
+        --enable-uriparser \
+        --enable-vaapi \
+        --enable-zlib \
+      "
+      if [ "$SNAPCRAFT_ARCH_TRIPLET" = "arm-linux-gnueabihf" ] || [ "$SNAPCRAFT_ARCH_TRIPLET" = "aarch64-linux-gnu" ]; then
+        CONFIGFLAGS="$CONFIGFLAGS \
+          --enable-omx \
+          --enable-omx_rpi \
+        "
       fi
+
+      # disable string truncation warning for transcoder
+      export CFLAGS="$CFLAGS -Wno-error=stringop-truncation"
+
       ./configure $CONFIGFLAGS
       snapcraftctl build
     build-packages:
       - bzip2
       - cmake
+      - dvb-apps
       - gettext
       - libavahi-client-dev
       - libavcodec-dev
+      - libavfilter-dev
       - libavformat-dev
       - libavresample-dev
       - libavutil-dev
       - libc6-dev
       - libdvbcsa-dev
+      - libffmpeg-nvenc-dev
       - libhdhomerun-dev
+      - libimagequant-dev
       - libpcre3-dev
       - libssl-dev
+      - libswresample3
       - libswscale-dev
       - libtool-bin
       - liburiparser-dev
       - libva-dev
+      - libx264-dev
+      - libx265-dev
       - python
       - wget
+      - xmltv-util
       - zlib1g-dev
+      - on armhf:
+        - libomxil-bellagio-dev
+      - on arm64:
+        - libomxil-bellagio-dev
     stage-packages:
       - bzip2
+      - dvb-apps
+      - libaom0
+      - libasound2
+      - libass9
       - libavahi-client3
+      - libavcodec58
+      - libavfilter7
+      - libavformat58
+      - libavresample4
+      - libavutil56
+      - libbluray2
+      - libbs2b0
+      - libcairo-gobject2
+      - libcairo2
+      - libchromaprint1
+      - libcodec2-0.9
+      - libdatrie1
+      - libfftw3-double3
+      - libflite1
+      - libfontconfig1
+      - libfreetype6
+      - libfribidi0
+      - libgdk-pixbuf2.0-0
+      - libgme0
+      - libgomp1
+      - libgraphite2-3
+      - libgsm1
+      - libharfbuzz0b
+      - libicu66
+      - liblilv-0-0
+      - libmp3lame0
+      - libmpg123-0
+      - libmysofa1
+      - libnorm1
+      - libnuma1
+      - libogg0
+      - libopenjp2-7
+      - libopenmpt0
+      - libopus0
+      - libpango-1.0-0
+      - libpangocairo-1.0-0
+      - libpangoft2-1.0-0
+      - libpgm-5.2-0
+      - libpixman-1-0
+      - libpostproc55
+      - librsvg2-2
+      - librubberband2
+      - libsamplerate0
+      - libserd-0-0
+      - libshine3
+      - libsnappy1v5
+      - libsodium23
+      - libsord-0-0
+      - libsoxr0
+      - libspeex1
+      - libsratom-0-0
+      - libssh-gcrypt-4
+      - libswresample3
+      - libswscale5
+      - libthai0
+      - libtheora0
+      - libtwolame0
       - liburiparser1
-      - zlib1g
-
-      # Video Acceleration
-      - libva2
       - libva-drm2
+      - libva-x11-2
+      - libva2
+      - libvdpau1
+      - libvidstab1.1
+      - libvorbis0a
+      - libvorbisenc2
+      - libvorbisfile3
+      - libvpx6
+      - libwavpack1
+      - libwebp6
+      - libwebpmux3
+      - libx264-155
+      - libx265-179
+      - libxcb-render0
+      - libxcb-shm0
+      - libxml2
+      - libxrender1
+      - libxvidcore4
+      - libzmq5
+      - ocl-icd-libopencl1
+      - xmltv-util
+      - zlib1g
       - try:
         - va-driver-all
         - vdpau-va-driver
-      # - libva-egl1
-      # - libva-glx1
-      # - libva-tpi1
-      # - libva-wayland1
-      # - libva-x11-1
