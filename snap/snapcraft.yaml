@@ -265,6 +265,7 @@ parts:
     stage-packages:
       - bzip2
       - dvb-apps
+      - ffmpeg
       - libaom0
       - libasound2
       - libass9
