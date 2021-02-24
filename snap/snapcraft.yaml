@@ -184,7 +184,7 @@ parts:
         snapcraftctl set-version "$(git rev-parse --short HEAD)"
       fi
     override-build: |
-      CONFIGFLAGS="--arch=$SNAPCRAFT_ARCH \
+      CONFIGFLAGS="--arch=$SNAPCRAFT_TARGET_ARCH \
         --prefix=/snap/tvheadend/current/usr \
         --disable-ffmpeg_static
         --enable-avahi
