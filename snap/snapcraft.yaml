@@ -9,10 +9,10 @@ description: >
   Once installed use your web browser to navigate to http://<IP-Address>:9981/.
   You can use 127.0.0.1 for the IP Address if your browser and tvheadend are
   on the same computer. You can change the listening port and IP with
-  `snapctl set tvheadend tvh-http-port=9981` and
-  `snapctl set tvheadend tvh-ip=0.0.0.0`. You can also change the port for HTSP
-  streaming connections with `snapctl set tvheadend tvh-htsp-port=9982`.
-  You can allow tvheadend to listen on IPv6 with `snapctl set tvheadend tvh-listen-on-ipv6=true`.
+  `snap set tvheadend tvh-http-port=9981` and
+  `snap set tvheadend tvh-ip=0.0.0.0`. You can also change the port for HTSP
+  streaming connections with `snap set tvheadend tvh-htsp-port=9982`.
+  You can allow tvheadend to listen on IPv6 with `snap set tvheadend tvh-listen-on-ipv6=true`.
 
   OSCam's web interface is listening on port 8888 by default. You can change
   this by editing the file returned by `tvheadend.oscam-config`. e.g.
