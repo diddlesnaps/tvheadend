@@ -3,6 +3,7 @@
 LISTEN_IP=$(snapctl get tvh-ip)
 LISTEN_HTTP_PORT=$(snapctl get tvh-http-port)
 LISTEN_HTSP_PORT=$(snapctl get tvh-htsp-port)
+LISTEN_ON_IPV6=$(snapctl get tvh-listen-on-ipv6)
 
 ARGS=
 
@@ -14,6 +15,9 @@ if [ -n "$LISTEN_HTTP_PORT" ]; then
 fi
 if [ -n "$LISTEN_HTSP_PORT" ]; then
     ARGS="$ARGS --htsp_port $LISTEN_HTSP_PORT"
+fi
+if [ -n "$LISTEN_ON_IPV6" ]; then
+    ARGS="$ARGS --ipv6"
 fi
 
 if [ ! -d "$SNAP_DATA/accesscontrol" ]; then
