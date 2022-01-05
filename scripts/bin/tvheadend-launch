@@ -1,27 +1,28 @@
-#!/bin/sh
+#!/bin/bash
 
 LISTEN_IP=$(snapctl get tvh-ip)
+ENABLE_IPV6=$(snapctl get tvh-enable-ipv6)
 LISTEN_HTTP_PORT=$(snapctl get tvh-http-port)
 LISTEN_HTSP_PORT=$(snapctl get tvh-htsp-port)
-LISTEN_ON_IPV6=$(snapctl get tvh-listen-on-ipv6)
 
-ARGS=
+ARGS=()
 
 if [ -n "$LISTEN_IP" ]; then
-    ARGS="$ARGS --bindaddr $LISTEN_IP --satip_bindaddr $LISTEN_IP"
+    ARGS+=(--bindaddr "$LISTEN_IP")
+    ARGS+=(--satip_bindaddr "$LISTEN_IP")
+fi
+if [ "$ENABLE_IPV6" = "true" ]; then
+    ARGS+=(--ipv6)
 fi
 if [ -n "$LISTEN_HTTP_PORT" ]; then
-    ARGS="$ARGS --http_port $LISTEN_HTTP_PORT"
+    ARGS+=(--http_port "$LISTEN_HTTP_PORT")
 fi
 if [ -n "$LISTEN_HTSP_PORT" ]; then
-    ARGS="$ARGS --htsp_port $LISTEN_HTSP_PORT"
-fi
-if [ -n "$LISTEN_ON_IPV6" ]; then
-    ARGS="$ARGS --ipv6"
+    ARGS+=(--htsp_port "$LISTEN_HTSP_PORT")
 fi
 
 if [ ! -d "$SNAP_DATA/accesscontrol" ]; then
-    ARGS="$ARGS --firstrun"
+    ARGS+=(--firstrun)
 fi
 
-exec "$SNAP/usr/bin/tvheadend" --config "$SNAP_DATA" $ARGS
+exec "$SNAP/usr/bin/tvheadend" --config "$SNAP_DATA" "${ARGS[@]}"

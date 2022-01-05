@@ -7,12 +7,14 @@ description: >
   formats. It can also stream and record from HDHomeRun devices.
 
   Once installed use your web browser to navigate to http://<IP-Address>:9981/.
-  You can use 127.0.0.1 for the IP Address if your browser and tvheadend are
+  You can use 127.0.0.1 for the IP Address if your browser and Tvheadend are
   on the same computer. You can change the listening port and IP with
   `snap set tvheadend tvh-http-port=9981` and
   `snap set tvheadend tvh-ip=0.0.0.0`. You can also change the port for HTSP
   streaming connections with `snap set tvheadend tvh-htsp-port=9982`.
-  You can allow tvheadend to listen on IPv6 with `snap set tvheadend tvh-listen-on-ipv6=true`.
+
+  Tvheadend is *not* listening on IPv6 by default. To enable IPv6 support, run
+  `snap set tvh-enable-ipv6=true`
 
   OSCam's web interface is listening on port 8888 by default. You can change
   this by editing the file returned by `tvheadend.oscam-config`. e.g.
@@ -119,11 +121,11 @@ parts:
     source-depth: 1
     plugin: nil
     override-build: |
-      if [ "$SNAPCRAFT_ARCH_TRIPLET" != "arm-linux-gnueabihf" ] && [ "$SNAPCRAFT_ARCH_TRIPLET" != "aarch64-linux-gnu" ]; then
+      if [ "$SNAPCRAFT_TARGET_ARCH" != "armhf" ] && [ "$SNAPCRAFT_TARGET_ARCH" != "arm64" ]; then
         exit 0
       fi
       # git apply $SNAPCRAFT_STAGE/vc-libs-neon.patch
-      if [ "$SNAPCRAFT_ARCH_TRIPLET" = "aarch64-linux-gnu" ]; then
+      if [ "$SNAPCRAFT_TARGET_ARCH" = "arm64" ]; then
         ./buildme --aarch64 .
       else
         ./buildme .
@@ -184,15 +186,18 @@ parts:
       else
         snapcraftctl set-version "$(git rev-parse --short HEAD)"
       fi
+      patch -Np1 -i $SNAPCRAFT_STAGE/hdhomerun.patch
     override-build: |
       CONFIGFLAGS="--arch=$SNAPCRAFT_TARGET_ARCH \
         --prefix=/snap/tvheadend/current/usr \
-        --disable-ffmpeg_static
-        --enable-avahi
+        --disable-pcloud_cache \
+        --enable-avahi \
+        --enable-bundle \
         --enable-capmt \
         --enable-cccam \
         --enable-constcw \
         --enable-cwc \
+        --enable-dvbcsa \
         --enable-dvbscan \
         --enable-hdhomerun_client \
         --enable-iptv \
@@ -209,6 +214,8 @@ parts:
         --enable-linuxdvbapi \
         --enable-nvenc \
         --enable-pcre2 \
+        --enable-pngquant \
+        --enable-qsv \
         --enable-satip_client \
         --enable-satip_server \
         --enable-tsfile \
@@ -218,15 +225,15 @@ parts:
         --enable-vaapi \
         --enable-zlib \
       "
-      if [ "$SNAPCRAFT_ARCH_TRIPLET" = "arm-linux-gnueabihf" ] || [ "$SNAPCRAFT_ARCH_TRIPLET" = "aarch64-linux-gnu" ]; then
+      if [ "$SNAPCRAFT_TARGET_ARCH" = "armhf" ] || [ "$SNAPCRAFT_TARGET_ARCH" = "arm64" ]; then
         CONFIGFLAGS="$CONFIGFLAGS \
           --enable-omx \
           --enable-omx_rpi \
         "
       fi
 
-      # disable string truncation warning for transcoder
-      export CFLAGS="$CFLAGS -Wno-error=stringop-truncation"
+      # disable specific warnings
+      CONFIGFLAGS="$CONFIGFLAGS --nowerror=unused-variable,stringop-truncation,attributes"
 
       ./configure $CONFIGFLAGS
       snapcraftctl build
@@ -246,17 +253,22 @@ parts:
       - libffmpeg-nvenc-dev
       - libhdhomerun-dev
       - libimagequant-dev
-      - libpcre3-dev
+      - libopus-dev
+      - libpcre2-dev
       - libssl-dev
       - libswresample3
       - libswscale-dev
       - libtool-bin
       - liburiparser-dev
       - libva-dev
+      - libvpx-dev
       - libx264-dev
       - libx265-dev
       - pngquant
-      - python
+      - python-is-python3
+      - python3
+      - python3-distutils
+      - python3-requests
       - wget
       - xmltv-util
       - zlib1g-dev
@@ -268,6 +280,7 @@ parts:
       - bzip2
       - dvb-apps
       - ffmpeg
+      - freeglut3
       - libaom0
       - libasound2
       - libass9
@@ -291,11 +304,13 @@ parts:
       - libfreetype6
       - libfribidi0
       - libgdk-pixbuf2.0-0
+      - libglu1-mesa
       - libgme0
       - libgomp1
       - libgraphite2-3
       - libgsm1
       - libharfbuzz0b
+      - libhdhomerun4
       - libicu66
       - liblilv-0-0
       - libmp3lame0
@@ -310,6 +325,10 @@ parts:
       - libpango-1.0-0
       - libpangocairo-1.0-0
       - libpangoft2-1.0-0
+      - libpcre2-8-0
+      - libpcre2-16-0
+      - libpcre2-32-0
+      - libpcre2-posix2
       - libpgm-5.2-0
       - libpixman-1-0
       - libpostproc55
