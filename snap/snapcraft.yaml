@@ -16,6 +16,11 @@ description: >
   Tvheadend is *not* listening on IPv6 by default. To enable IPv6 support, run
   `snap set tvh-enable-ipv6=true`
 
+  To use the internal EPG grabbers, you must first configure them to save their
+  caches to `/var/snap/tvheadend/common/.xmltv/cache`. To do this, run
+  `sudo snap run --shell /snap/tvheadend/current/usr/bin/tv_grab_uk_tvguide --configure`
+  where `tv_grab_uk_tvguide` should be replaced with your chosen grabber executable.
+
   OSCam's web interface is listening on port 8888 by default. You can change
   this by editing the file returned by `tvheadend.oscam-config`. e.g.
   `sudo $EDITOR $(tvheadend.oscam-config)`. This is an ini-style file where the
