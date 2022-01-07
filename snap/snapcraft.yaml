@@ -254,10 +254,9 @@ parts:
       patch -Np1 -i $SNAPCRAFT_STAGE/hdhomerun.patch
     override-build: |
       CONFIGFLAGS=(
-        --arch=$SNAPCRAFT_TARGET_ARCH
         --prefix=/snap/tvheadend/current/usr
         --disable-pcloud_cache
-        --disbale-ffmpeg_static
+        --disable-ffmpeg_static
         --enable-avahi
         --enable-bundle
         --enable-capmt
@@ -269,6 +268,7 @@ parts:
         --enable-hdhomerun_client
         --enable-iptv
         --enable-libav
+        --enable-libfdkaac
         --enable-libopus
         --enable-libtheora
         --enable-libvorbis
@@ -296,9 +296,6 @@ parts:
           --enable-omx
           --enable-omx_rpi
         )
-      fi
-      if [ "$SNAPCRAFT_TARGET_ARCH" = "amd64" ]; then
-        CONFIGFLAGS+=(--enable-libfdkaac)
       fi
 
       # disable specific warnings
