@@ -74,6 +74,7 @@ apps:
       - dvb
       - network
       - network-bind
+      - opengl
       - removable-media
 
   tvheadend-webui:
@@ -172,6 +173,64 @@ parts:
       - libpcsclite1
       - libssl1.1
 
+  xmltv:
+    plugin: make
+    source: https://github.com/XMLTV/xmltv.git
+    source-tag: v1.0.0
+    override-build: |
+      perl Makefile.PL prefix=$SNAPCRAFT_PART_INSTALL/usr --default
+      make
+      make test
+      make install
+    build-packages: &perl
+      - perl
+      - libdate-manip-perl
+      - libfile-slurp-perl
+      - libjson-perl
+      - libjson-xs-perl
+      - libwww-perl
+      - liblwp-protocol-https-perl
+      - liblwp-useragent-determined-perl
+      - libterm-readkey-perl
+      - liburi-perl
+      - libxml-libxml-perl
+      - libxml-parser-perl
+      - libxml-treepp-perl
+      - libxml-twig-perl
+      - libxml-writer-perl
+      - libarchive-zip-perl
+      - libio-compress-perl
+      - libdata-dump-perl
+      - libtimedate-perl
+      - libdatetime-perl
+      - libdatetime-format-iso8601-perl
+      - libdatetime-format-sqlite-perl
+      - libdatetime-format-strptime-perl
+      - libdatetime-timezone-perl
+      - libdbd-sqlite3-perl
+      - libdbi-perl
+      - libdigest-sha-perl
+      - libfile-homedir-perl
+      - libfile-which-perl
+      - libhtml-parser-perl
+      - libhtml-tree-perl
+      - libhttp-cache-transparent-perl
+      - libhttp-cookies-perl
+      - libhttp-message-perl
+      - libio-stringy-perl
+      - liblist-moreutils-perl
+      - libsoap-lite-perl
+      - liburi-encode-perl
+      - libxml-dom-perl
+      - libxml-xslt-perl
+      - liblingua-preferred-perl
+      - libperlio-gzip-perl
+      - libunicode-string-perl
+      - liburi-escape-xs-perl
+      - liblinux-dvb-perl
+      - libterm-progressbar-perl
+    stage-packages: *perl
+
   tvheadend:
     after: [vc4-libs]
     plugin: make
@@ -194,54 +253,58 @@ parts:
       fi
       patch -Np1 -i $SNAPCRAFT_STAGE/hdhomerun.patch
     override-build: |
-      CONFIGFLAGS="--arch=$SNAPCRAFT_TARGET_ARCH \
-        --prefix=/snap/tvheadend/current/usr \
-        --disable-pcloud_cache \
-        --enable-avahi \
-        --enable-bundle \
-        --enable-capmt \
-        --enable-cccam \
-        --enable-constcw \
-        --enable-cwc \
-        --enable-dvbcsa \
-        --enable-dvbscan \
-        --enable-hdhomerun_client \
-        --enable-iptv \
-        --enable-libav \
-        --enable-libfdkaac \
-        --enable-libopus \
-        --enable-libtheora \
-        --enable-libvorbis \
-        --enable-libvpx \
-        --enable-libx264 \
-        --enable-libx265 \
-        --enable-linuxdvb \
-        --enable-linuxdvb_ca \
-        --enable-linuxdvbapi \
-        --enable-nvenc \
-        --enable-pcre2 \
-        --enable-pngquant \
-        --enable-qsv \
-        --enable-satip_client \
-        --enable-satip_server \
-        --enable-tsfile \
-        --enable-tvhcsa \
-        --enable-upnp \
-        --enable-uriparser \
-        --enable-vaapi \
-        --enable-zlib \
-      "
+      CONFIGFLAGS=(
+        --arch=$SNAPCRAFT_TARGET_ARCH
+        --prefix=/snap/tvheadend/current/usr
+        --disable-pcloud_cache
+        --disbale-ffmpeg_static
+        --enable-avahi
+        --enable-bundle
+        --enable-capmt
+        --enable-cccam
+        --enable-constcw
+        --enable-cwc
+        --enable-dvbcsa
+        --enable-dvbscan
+        --enable-hdhomerun_client
+        --enable-iptv
+        --enable-libav
+        --enable-libopus
+        --enable-libtheora
+        --enable-libvorbis
+        --enable-libvpx
+        --enable-libx264
+        --enable-libx265
+        --enable-linuxdvb
+        --enable-linuxdvb_ca
+        --enable-linuxdvbapi
+        --enable-nvenc
+        --enable-pcre2
+        --enable-pngquant
+        --enable-qsv
+        --enable-satip_client
+        --enable-satip_server
+        --enable-tsfile
+        --enable-tvhcsa
+        --enable-upnp
+        --enable-uriparser
+        --enable-vaapi
+        --enable-zlib
+      )
       if [ "$SNAPCRAFT_TARGET_ARCH" = "armhf" ] || [ "$SNAPCRAFT_TARGET_ARCH" = "arm64" ]; then
-        CONFIGFLAGS="$CONFIGFLAGS \
-          --enable-omx \
-          --enable-omx_rpi \
-        "
+        CONFIGFLAGS+=(
+          --enable-omx
+          --enable-omx_rpi
+        )
+      fi
+      if [ "$SNAPCRAFT_TARGET_ARCH" = "amd64" ]; then
+        CONFIGFLAGS+=(--enable-libfdkaac)
       fi
 
       # disable specific warnings
-      CONFIGFLAGS="$CONFIGFLAGS --nowerror=unused-variable,stringop-truncation,attributes"
+      CONFIGFLAGS+=(--nowerror=unused-variable,stringop-truncation,attributes)
 
-      ./configure $CONFIGFLAGS
+      ./configure "${CONFIGFLAGS[@]}"
       snapcraftctl build
     build-packages:
       - bzip2
@@ -276,7 +339,6 @@ parts:
       - python3-distutils
       - python3-requests
       - wget
-      - xmltv-util
       - zlib1g-dev
       - on armhf:
         - libomxil-bellagio-dev
@@ -378,7 +440,6 @@ parts:
       - libzmq5
       - ocl-icd-libopencl1
       - pngquant
-      - xmltv-util
       - zlib1g
       - try:
         - va-driver-all
