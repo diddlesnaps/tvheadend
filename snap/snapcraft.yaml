@@ -94,6 +94,7 @@ apps:
       - network
       - network-bind
       - removable-media
+      - serial-port
 
   oscam-webui:
     command: bin/oscam-webui
